@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .overall-stats {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .overall-percentage {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .overall-label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .tab {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .subject-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .percentage-large {
+            font-size: 32px;
+        }
+
+        .percentage-good {
+            color: #10b981;
+        }
+
+        .percentage-warning {
+            color: #f59e0b;
+        }
+
+        .percentage-danger {
+            color: #ef4444;
+        }
+
+        .leaves-indicator {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .leaves-bar {
+            background: #e5e7eb;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .leaves-fill {
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .leaves-fill.safe {
+            background: #10b981;
+        }
+
+        .leaves-fill.warning {
+            background: #f59e0b;
+        }
+
+        .leaves-fill.danger {
+            background: #ef4444;
+        }
+
+        .leaves-text {
+            text-align: center;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-present {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-present:active {
+            transform: scale(0.98);
+            background: #059669;
+        }
+
+        .btn-absent {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-absent:active {
+            transform: scale(0.98);
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #667eea;
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.98);
+            background: #5568d3;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input[type="number"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #9ca3af;
+            line-height: 1;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+        }
+
+        .calendar-day.header {
+            background: #f3f4f6;
+            color: #6b7280;
+            cursor: default;
+            border: none;
+        }
+
+        .calendar-day.present {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .calendar-day.absent {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .calendar-day.other-month {
+            color: #d1d5db;
+        }
+
+        .attendance-record {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-date {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .record-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .record-status.present {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .record-status.absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .delete-record {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Attendance Tracker</h1>
+
+        <div class="overall-stats">
+            <div class="overall-percentage" id="overallPercentage">0%</div>
+            <div class="overall-label">Overall Attendance</div>
+        </div>
+
+        <div class="tabs" id="tabButtons"></div>
+
+        <div id="tabContents"></div>
+    </div>
+
+    <!-- Bulk Entry Modal -->
+    <div id="bulkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="bulkModalTitle">Bulk Entry</h2>
+                <button class="close-btn" onclick="closeBulkModal()">&times;</button>
+            </div>
+            <form id="bulkForm">
+                <div class="form-group">
+                    <label for="lecturesAttended">Lectures Attended</label>
+                    <input type="number" id="lecturesAttended" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="lecturesConducted">Total Lectures Conducted</label>
+                    <input type="number" id="lecturesConducted" min="0" required>
+                </div>
+                <button type="submit" class="btn btn-secondary">Update Attendance</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div id="calendarModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="calendarModalTitle">Attendance Calendar</h2>
+                <button class="close-btn" onclick="closeCalendarModal()">&times;</button>
+            </div>
+            <div id="calendarContent"></div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="historyModalTitle">Attendance History</h2>
+                <button class="close-btn" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            <div id="historyContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const subjects = [
+            { name: 'Cost Accounting', leaves: 9 },
+            { name: 'Principles of Marketing', leaves: 9 },
+            { name: 'Happiness and Wellbeing', leaves: 6 },
+            { name: 'Indian Management Thoughts', leaves: 6 },
+            { name: 'Environment Management', leaves: 6 },
+            { name: 'Business Ethics', leaves: 6 },
+            { name: 'Quantitative Techniques - II', leaves: 9 },
+            { name: 'Organisational Behaviour', leaves: 9 },
+            { name: 'Corporate Communication', leaves: 6 }
+        ];
+
+        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || {};
+        let currentSubject = null;
+
+        // Initialize data structure
+        subjects.forEach(subject => {
+            if (!attendanceData[subject.name]) {
+                attendanceData[subject.name] = {
+                    records: []
+                };
+            }
+        });
+
+        function saveData() {
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+            renderAll();
+        }
+
+        function calculateStats(subjectName) {
+            const records = attendanceData[subjectName].records;
+            const attended = records.filter(r => r.status === 'present').length;
+            const total = records.length;
+            const absent = total - attended;
+            const percentage = total > 0 ? ((attended / total) * 100).toFixed(1) : 0;
+            const subject = subjects.find(s => s.name === subjectName);
+            const leavesLeft = subject.leaves - absent;
+
+            return { attended, total, absent, percentage, leavesLeft, allowedLeaves: subject.leaves };
+        }
+
+        function calculateOverallStats() {
+            let totalAttended = 0;
+            let totalConducted = 0;
+
+            subjects.forEach(subject => {
+                const stats = calculateStats(subject.name);
+                totalAttended += stats.attended;
+                totalConducted += stats.total;
+            });
+
+            return totalConducted > 0 ? ((totalAttended / totalConducted) * 100).toFixed(1) : 0;
+        }
+
+        function renderTabs() {
+            const tabButtons = document.getElementById('tabButtons');
+            tabButtons.innerHTML = subjects.map((subject, index) => 
+                `<button class="tab ${index === 0 ? 'active' : ''}" onclick="switchTab(${index})">${subject.name}</button>`
+            ).join('');
+        }
+
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            
+            contents.forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
+
+        function renderSubjectCard(subject, index) {
+            const stats = calculateStats(subject.name);
+            const leavesUsedPercent = (stats.absent / stats.allowedLeaves) * 100;
+            
+            let percentageClass = 'percentage-good';
+            if (stats.percentage < 75) percentageClass = 'percentage-danger';
+            else if (stats.percentage < 85) percentageClass = 'percentage-warning';
+
+            let leavesClass = 'safe';
+            if (leavesUsedPercent >= 80) leavesClass = 'danger';
+            else if (leavesUsedPercent >= 60) leavesClass = 'warning';
+
+            return `
+                <div class="tab-content ${index === 0 ? 'active' : ''}">
+                    <div class="card">
+                        <div class="subject-header">
+                            <div class="subject-name">${subject.name}</div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-value percentage-large ${percentageClass}">${stats.percentage}%</div>
+                                <div class="stat-label">Attendance</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">${stats.attended}/${stats.total}</div>
+                                <div class="stat-label">Attended</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">${stats.absent}</div>
+                                <div class="stat-label">Absences</div>
+                            </div>
+                        </div>
+
+                        <div class="leaves-indicator">
+                            <div class="leaves-bar">
+                                <div class="leaves-fill ${leavesClass}" style="width: ${Math.min(leavesUsedPercent, 100)}%">
+                                    ${stats.absent}/${stats.allowedLeaves}
+                                </div>
+                            </div>
+                            <div class="leaves-text">
+                                ${stats.leavesLeft >= 0 ? `${stats.leavesLeft} leaves remaining` : `${Math.abs(stats.leavesLeft)} leaves over limit!`}
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-present" onclick="markAttendance('${subject.name}', 'present')">✓ Present</button>
+                            <button class="btn btn-absent" onclick="markAttendance('${subject.name}', 'absent')">✗ Absent</button>
+                            <button class="btn btn-secondary" onclick="openBulkModal('${subject.name}')">📝 Bulk Entry</button>
+                            <button class="btn btn-secondary" onclick="openCalendarModal('${subject.name}')">📅 Calendar View</button>
+                            <button class="btn btn-secondary" onclick="openHistoryModal('${subject.name}')">📋 View History</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAll() {
+            renderTabs();
+            
+            const tabContents = document.getElementById('tabContents');
+            tabContents.innerHTML = subjects.map((subject, index) => renderSubjectCard(subject, index)).join('');
+
+            const overallPercentage = calculateOverallStats();
+            document.getElementById('overallPercentage').textContent = overallPercentage + '%';
+            
+            const percentageNum = parseFloat(overallPercentage);
+            const overallEl = document.getElementById('overallPercentage');
+            overallEl.className = 'overall-percentage';
+            if (percentageNum < 75) overallEl.classList.add('percentage-danger');
+            else if (percentageNum < 85) overallEl.classList.add('percentage-warning');
+            else overallEl.classList.add('percentage-good');
+        }
+
+        function markAttendance(subjectName, status) {
+            const today = new Date().toISOString().split('T')[0];
+            const records = attendanceData[subjectName].records;
+            
+            // Check if already marked today
+            const existingIndex = records.findIndex(r => r.date === today);
+            if (existingIndex >= 0) {
+                if (confirm('Attendance already marked for today. Update it?')) {
+                    records[existingIndex].status = status;
+                }
+            } else {
+                records.push({ date: today, status: status });
+            }
+            
+            saveData();
+        }
+
+        function openBulkModal(subjectName) {
+            currentSubject = subjectName;
+            document.getElementById('bulkModalTitle').textContent = `Bulk Entry - ${subjectName}`;
+            document.getElementById('bulkModal').classList.add('active');
+            
+            const stats = calculateStats(subjectName);
+            document.getElementById('lecturesAttended').value = stats.attended;
+            document.getElementById('lecturesConducted').value = stats.total;
+        }
+
+        function closeBulkModal() {
+            document.getElementById('bulkModal').classList.remove('active');
+            document.getElementById('bulkForm').reset();
+        }
+
+        document.getElementById('bulkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const attended = parseInt(document.getElementById('lecturesAttended').value);
+            const conducted = parseInt(document.getElementById('lecturesConducted').value);
+            
+            if (attended > conducted) {
+                alert('Attended lectures cannot be more than total conducted!');
+                return;
+            }
+
+            // Clear existing records and create new ones
+            attendanceData[currentSubject].records = [];
+            
+            // Add present records
+            for (let i = 0; i < attended; i++) {
+                attendanceData[currentSubject].records.push({
+                    date: `bulk-${i}`,
+                    status: 'present'
+                });
+            }
+            
+            // Add absent records
+            for (let i = 0; i < (conducted - attended); i++) {
+                attendanceData[currentSubject].records.push({
+                    date: `bulk-absent-${i}`,
+                    status: 'absent'
+                });
+            }
+            
+            saveData();
+            closeBulkModal();
+        });
+
+        function openCalendarModal(subjectName) {
+            currentSubject = subjectName;
+            document.getElementById('calendarModalTitle').textContent = `${subjectName} - Calendar`;
+            document.getElementById('calendarModal').classList.add('active');
+            renderCalendar(subjectName);
+        }
+
+        function closeCalendarModal() {
+            document.getElementById('calendarModal').classList.remove('active');
+        }
+
+        function renderCalendar(subjectName) {
+            const records = attendanceData[subjectName].records.filter(r => r.date.includes('-') && r.date.split('-').length === 3);
+            const content = document.getElementById('calendarContent');
+            
+            if (records.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 20px;">No date-wise records yet. Mark attendance using Present/Absent buttons.</p>';
+                return;
+            }
+
+            const recordsByDate = {};
+            records.forEach(r => {
+                recordsByDate[r.date] = r.status;
+            });
+
+            const dates = records.map(r => new Date(r.date)).sort((a, b) => a - b);
+            const minDate = dates[0];
+            const maxDate = dates[dates.length - 1];
+
+            let html = '<div style="max-height: 400px; overflow-y: auto;">';
+            
+            const presentDays = records.filter(r => r.status === 'present').length;
+            const absentDays = records.filter(r => r.status === 'absent').length;
+            
+            html += `
+                <div style="margin-bottom: 20px; text-align: center;">
+                    <span style="display: inline-block; margin: 0 10px;">
+                        <span style="display: inline-block; width: 15px; height: 15px; background: #d1fae5; border: 2px solid #10b981; border-radius: 3px; margin-right: 5px;"></span>
+                        Present (${presentDays})
+                    </span>
+                    <span style="display: inline-block; margin: 0 10px;">
+                        <span style="display: inline-block; width: 15px; height: 15px; background: #fee2e2; border: 2px solid #ef4444; border-radius: 3px; margin-right: 5px;"></span>
+                        Absent (${absentDays})
+                    </span>
+                </div>
+            `;
+
+            records.reverse().forEach(record => {
+                if (record.date.includes('-') && record.date.split('-').length === 3) {
+                    const date = new Date(record.date);
+                    const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                    
+                    html += `
+                        <div class="attendance-record">
+                            <div>
+                                <div class="record-date">${formattedDate}</div>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <span class="record-status ${record.status}">${record.status === 'present' ? 'Present' : 'Absent'}</span>
+                                <button class="delete-record" onclick="deleteRecord('${subjectName}', '${record.date}')">Delete</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        function openHistoryModal(subjectName) {
+            currentSubject = subjectName;
+            document.getElementById('historyModalTitle').textContent = `${subjectName} - History`;
+            document.getElementById('historyModal').classList.add('active');
+            renderHistory(subjectName);
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.remove('active');
+        }
+
+        function renderHistory(subjectName) {
+            const records = attendanceData[subjectName].records;
+            const content = document.getElementById('historyContent');
+            
+            if (records.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #9ca3af; padding: 20px;">No attendance records yet.</p>';
+                return;
+            }
+
+            const sortedRecords = [...records].sort((a, b) => {
+                if (a.date.includes('-') && b.date.includes('-') && a.date.split('-').length === 3 && b.date.split('-').length === 3) {
+                    return new Date(b.date) - new Date(a.date);
+                }
+                return 0;
+            });
+
+            let html = '<div style="max-height: 400px; overflow-y: auto;">';
+            
+            sortedRecords.forEach(record => {
+                let dateDisplay;
+                if (record.date.includes('-') && record.date.split('-').length === 3) {
+                    const date = new Date(record.date);
+                    dateDisplay = date.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                } else {
+                    dateDisplay = 'Bulk Entry';
+                }
+                
+                html += `
+                    <div class="attendance-record">
+                        <div>
+                            <div class="record-date">${dateDisplay}</div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="record-status ${record.status}">${record.status === 'present' ? 'Present' : 'Absent'}</span>
+                            <button class="delete-record" onclick="deleteRecord('${subjectName}', '${record.date}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        function deleteRecord(subjectName, date) {
+            if (confirm('Delete this attendance record?')) {
+                const records = attendanceData[subjectName].records;
+                const index = records.findIndex(r => r.date === date);
+                if (index >= 0) {
+                    records.splice(index, 1);
+                    saveData();
+                    
+                    // Refresh the modal if it's open
+                    if (document.getElementById('historyModal').classList.contains('active')) {
+                        renderHistory(subjectName);
+                    }
+                    if (document.getElementById('calendarModal').classList.contains('active')) {
+                        renderCalendar(subjectName);
+                    }
+                }
+            }
+        }
+
+        // Initial render
+        renderAll();
+    </script>
+</body>
+</html>
